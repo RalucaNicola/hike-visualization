@@ -21,6 +21,8 @@ const brown = [158, 114, 82];
 const lightBrown = [161, 136, 119];
 const orange = [245, 173, 66];
 
+/* miniMap used in the description */
+
 const miniMap = new ArcGISMap({
   basemap: new Basemap({
     baseLayers: [
@@ -95,12 +97,11 @@ const citiesLayer = new FeatureLayer({
 miniMap.add(citiesLayer);
 
 /**
- * Initialize application
+ * main map displaying the hike trails
  */
 const map = new ArcGISWebScene({
-  portalItem: {
-    id: "eec4efdf5aef4971abd0bb6b69827522"
-  }
+  basemap: "satellite",
+  ground: "world-elevation"
 });
 
 const graphicsLayer = new GraphicsLayer({
@@ -109,11 +110,166 @@ const graphicsLayer = new GraphicsLayer({
   }
 });
 
+map.add(graphicsLayer);
+
 const view = new SceneView({
   map,
   container: 'viewDiv',
-  qualityProfile: "high"
+  qualityProfile: "high",
+  camera: {
+    position: [
+      7.66570611,
+      46.48383810,
+      3424.75347
+    ],
+    heading: 205.25,
+    tilt: 72.51
+  }
 });
+
+function generateSymbol(svgURL, color) {
+  return {
+    type: "point-3d",
+    symbolLayers: [
+      {
+        type: "icon",
+        resource: { primitive: "circle" },
+        material: {
+          color: color
+        },
+        outline: {
+          color: "white",
+          size: 1
+        },
+        size: 20
+      },
+      {
+        type: "icon",
+        resource: { href: svgURL },
+        material: {
+          color: "white"
+        },
+        size: 10
+      }
+    ],
+    verticalOffset: {
+      screenLength: 40,
+      maxWorldLength: 500000,
+      minWorldLength: 0
+    },
+    callout: {
+      type: "line",
+      size: 1.5,
+      color: [255, 255, 255, 1],
+      border: {
+        color: [100, 100, 100]
+      }
+    }
+  }
+}
+
+/* adding images as a feature layer with attachments */
+
+const popupExpression = `
+  var urlPart1 = "https://services2.arcgis.com/cFEFS0EWrhfDeVw9/arcgis/rest/services/Hiking_POI/FeatureServer/0/"
+  var objectID = $feature.OBJECTID
+  var urlPart2 = "/attachments/"
+  var attachID = 0;
+  if (Count(Attachments($feature)) > 0) {
+    attachID = (First(Attachments($feature))).id
+  }
+  return urlPart1 + objectID + urlPart2 + attachID
+`
+
+const picturesLayer = new FeatureLayer({
+  url: "https://services2.arcgis.com/cFEFS0EWrhfDeVw9/arcgis/rest/services/Hiking_POI/FeatureServer",
+  elevationInfo: {
+    mode: "relative-to-ground",
+  },
+  definitionExpression: "Class = 'picture'",
+  popupTemplate: {
+    expressionInfos: [{
+      name: "image",
+      expression: popupExpression
+    }],
+    content: "<img src='{expression/image}'%'>",
+    lastEditInfoEnabled: false
+  },
+  screenSizePerspectiveEnabled: false,
+  renderer: {
+    type: "simple",
+    symbol: generateSymbol("https://static.arcgis.com/arcgis/styleItems/Icons/web/resource/Landmark.svg", [100, 100, 100])
+  }
+});
+
+map.add(picturesLayer);
+
+/* add a feature layer with the points of interest - manually digitized */
+
+const hikingPOI = new FeatureLayer({
+  url: "https://services2.arcgis.com/cFEFS0EWrhfDeVw9/arcgis/rest/services/Hiking_POI/FeatureServer",
+  elevationInfo: {
+    mode: "relative-to-ground",
+  },
+  definitionExpression: "Class <> 'picture'",
+  screenSizePerspectiveEnabled: false,
+  labelingInfo: [
+    new LabelClass({
+      labelExpressionInfo: { expression: "$feature.Name"},
+      symbol: {
+        type: "label-3d",
+        symbolLayers: [{
+          type: "text",
+          material: {
+            color: [255, 255, 255, 0.9]
+          },
+          halo: {
+            size:  1,
+            color: [27, 53, 94]
+          },
+          font: {
+            size:  10,
+            family: "sans-serif"
+          }
+        }]
+      }
+    })
+  ],
+  renderer: {
+      type: "unique-value",
+      field: "Class",
+      defaultSymbol: {
+        type: "point-3d",
+        symbolLayers: [
+          {
+            type: "icon",
+            resource: { primitive: "circle" },
+            material: {
+              color: "white"
+            },
+            size: 0.1
+          }]
+      },
+      uniqueValueInfos: [
+        {
+          value: "restaurant",
+          symbol: generateSymbol("https://static.arcgis.com/arcgis/styleItems/Icons/web/resource/Restaurant.svg", lightBrown)
+        },
+        {
+          value: "bus",
+          symbol: generateSymbol("https://static.arcgis.com/arcgis/styleItems/Icons/web/resource/Bus.svg", lightBlue)
+        },
+        {
+          value: "cable car",
+          symbol: generateSymbol("https://static.arcgis.com/arcgis/styleItems/Icons/web/resource/AerialTram.svg", lightBlue)
+        }
+      ]
+    }
+});
+
+map.add(hikingPOI);
+
+/* get and parse tcx data and display it on the map */
 
 request("./assets/data/hike_01_01_2020.tcx", {
   responseType: "xml"
@@ -133,157 +289,7 @@ request("./assets/data/hike_01_01_2020.tcx", {
 
   graphicsLayer.add(graphic);
 
-  map.add(graphicsLayer);
-  view.when(function() {
-    view.goTo({
-      position: [
-        7.66570611,
-        46.48383810,
-        3424.75347
-      ],
-      heading: 205.25,
-      tilt: 72.51
-    });
-  });
-
-  function generateSymbol(svgURL, color) {
-    return {
-      type: "point-3d",
-      symbolLayers: [
-        {
-          type: "icon",
-          resource: { primitive: "circle" },
-          material: {
-            color: color
-          },
-          outline: {
-            color: "white",
-            size: 1
-          },
-          size: 20
-        },
-        {
-          type: "icon",
-          resource: { href: svgURL },
-          material: {
-            color: "white"
-          },
-          size: 10
-        }
-      ],
-      verticalOffset: {
-        screenLength: 40,
-        maxWorldLength: 500000,
-        minWorldLength: 0
-      },
-      callout: {
-        type: "line",
-        size: 1.5,
-        color: [255, 255, 255, 1],
-        border: {
-          color: [100, 100, 100]
-        }
-      }
-    }
-  }
-
-  const popupExpression = `
-    var urlPart1 = "https://services2.arcgis.com/cFEFS0EWrhfDeVw9/arcgis/rest/services/Hiking_POI/FeatureServer/0/"
-    var objectID = $feature.OBJECTID
-    var urlPart2 = "/attachments/"
-    var attachID = 0;
-    if (Count(Attachments($feature)) > 0) {
-      attachID = (First(Attachments($feature))).id
-    }
-    return urlPart1 + objectID + urlPart2 + attachID
-  `
-
-  const picturesLayer = new FeatureLayer({
-    url: "https://services2.arcgis.com/cFEFS0EWrhfDeVw9/arcgis/rest/services/Hiking_POI/FeatureServer",
-    elevationInfo: {
-      mode: "relative-to-ground",
-    },
-    definitionExpression: "Class = 'picture'",
-    popupTemplate: {
-      expressionInfos: [{
-        name: "image",
-        expression: popupExpression
-      }],
-      content: "<img src='{expression/image}'%'>",
-      lastEditInfoEnabled: false
-    },
-    screenSizePerspectiveEnabled: false,
-    renderer: {
-      type: "simple",
-      symbol: generateSymbol("https://static.arcgis.com/arcgis/styleItems/Icons/web/resource/Landmark.svg", [100, 100, 100])
-    }
-  });
-
-  map.add(picturesLayer);
-
-  const hikingPOI = new FeatureLayer({
-    url: "https://services2.arcgis.com/cFEFS0EWrhfDeVw9/arcgis/rest/services/Hiking_POI/FeatureServer",
-    elevationInfo: {
-      mode: "relative-to-ground",
-    },
-    definitionExpression: "Class <> 'picture'",
-    screenSizePerspectiveEnabled: false,
-    labelingInfo: [
-      new LabelClass({
-        labelExpressionInfo: { expression: "$feature.Name"},
-        symbol: {
-          type: "label-3d",
-          symbolLayers: [{
-            type: "text",
-            material: {
-              color: [255, 255, 255, 0.9]
-            },
-            halo: {
-              size:  1,
-              color: [27, 53, 94]
-            },
-            font: {
-              size:  10,
-              family: "sans-serif"
-            }
-          }]
-        }
-      })
-    ],
-    renderer: {
-        type: "unique-value",
-        field: "Class",
-        defaultSymbol: {
-          type: "point-3d",
-          symbolLayers: [
-            {
-              type: "icon",
-              resource: { primitive: "circle" },
-              material: {
-                color: "white"
-              },
-              size: 0.1
-            }]
-        },
-        uniqueValueInfos: [
-          {
-            value: "restaurant",
-            symbol: generateSymbol("https://static.arcgis.com/arcgis/styleItems/Icons/web/resource/Restaurant.svg", lightBrown)
-          },
-          {
-            value: "bus",
-            symbol: generateSymbol("https://static.arcgis.com/arcgis/styleItems/Icons/web/resource/Bus.svg", lightBlue)
-          },
-          {
-            value: "cable car",
-            symbol: generateSymbol("https://static.arcgis.com/arcgis/styleItems/Icons/web/resource/AerialTram.svg", lightBlue)
-          }
-        ]
-      }
-  });
-
-  map.add(hikingPOI);
-
+  /* display an elevation profile for the graphic */
   new ElevationProfile({
     view: view,
     container: "profile",
@@ -299,6 +305,8 @@ request("./assets/data/hike_01_01_2020.tcx", {
     }
   });
 });
+
+/* viewpoints to zoom to from the links in the description of the hike */
 
 const viewpoints = {
   trainStation: {
@@ -348,6 +356,8 @@ for (let i = 0; i < viewpointBtns.length; i++) {
     view.goTo(viewpoints[event.target.dataset.value]);
   });
 }
+
+/* switch the map padding depending on the device */
 
 const mqDesktop = window.matchMedia("(min-width: 681px)");
 
