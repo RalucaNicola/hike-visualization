@@ -1,0 +1,114 @@
+@import "~@arcgis/core/assets/esri/themes/light/main.css";
+
+html,
+body,
+#viewDiv {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.esri-popup__inline-actions-container {
+  display: none;
+}
+
+.esri-component>.esri-widget--panel {
+  width: 100% !important;
+}
+
+.viewpointBtn {
+  background: none;
+  border: none;
+  border-radius: 10px;
+  font-family: "Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 1em;
+  color: rgb(100, 100, 100);
+  display: inline;
+  cursor: pointer;
+}
+
+.main {
+  background-color: rgba(255, 255, 255, 1);
+  padding: 0;
+  font-family: "Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;
+  color: rgb(100, 100, 100);
+  overflow: auto;
+}
+
+.main p {
+  line-height: 1.7em;
+}
+
+h4 {
+  margin: 0;
+}
+
+.section {
+ padding-bottom: 1em;
+}
+
+.title {
+  background-color: rgba(245, 176, 73, 0.8);
+  color: white;
+  padding: 0.5em 1.5em;
+}
+
+.sections {
+  padding: 1.5em;
+}
+
+#miniMap {
+  height: 200px;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.blue {
+  background-color: rgba(17, 121, 207, 0.3);
+}
+
+button.blue:hover {
+  background-color: rgba(17, 121, 207, 0.6);
+  color: white;
+}
+
+.brown {
+  background-color: rgba(158, 114, 82, 0.3);
+}
+
+button.brown:hover {
+  background-color: rgba(158, 114, 82, 0.6);
+  color: white;
+}
+
+/* large screen and medium screen */
+
+@media screen
+  and (min-width: 681px) {
+    .main {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      bottom: 15px;
+      max-width: 400px;
+    }
+}
+
+/* mobile */
+
+@media screen
+  and (min-width: 320px)
+  and (max-width: 680px) {
+    .main {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+    }
+  }
+
+  .esri-button--tertiary {
+    color:  rgba(245, 176, 73);
+  }

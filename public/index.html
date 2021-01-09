@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+    name="viewport"
+    content="initial-scale=1,maximum-scale=1,user-scalable=no"
+  />
+    <title>Hike map - Kandersteg</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@arcgis/core@4.18.1/assets/esri/themes/light/main.css" />
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+    <div class="main">
+      <div class="title">
+        <h3>Kandersteg to Daubensee</h3>
+      </div>
+      <div class="sections">
+        <div class="section">
+          <h4>How to get there?</h4>
+          <p>Kandersteg is a one hour train ride away from Bern. From <button class="viewpointBtn blue" data-value="trainStation">Kandersteg Bahnhof</button> you'll take a 10 minutes bus to the <button class="viewpointBtn blue" data-value="cableCar">Sunnbüel cable car</button>. The hike begins there at the <button class="viewpointBtn brown" data-value="bergRestaurant">Bergrestaurant</button>.</p>
+          <div id="miniMap"></div>
+        </div>
+        <div class="section">
+          <h4>How difficult is it?</h4>
+          <p>It is a medium difficulty hike which takes around 3.5 hours both ways. We did this hike in winter and we took our snowshoes, but the trail is well prepared and you can also do the hike without snowshoes. The day we went on the hike it was quite cold and windy closer to the lake, and that's why we turned around before actually getting to the lake.</p>
+          <div id="profile"></div>
+          <p>There are two restaurants where you can eat: <button class="viewpointBtn brown" data-value="berghotelSchwarenbach">Berghotel Schwarenbach</button> and <button class="viewpointBtn brown" data-value="bergRestaurant">Bergrestaurant</button></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
