@@ -47,8 +47,6 @@ request("./assets/data/hike_01_01_2020.tcx", {
   });
   graphicsLayer.add(graphic);
 
-  // add ElevationProfile widget
-
 });
 ```
 
@@ -61,7 +59,6 @@ import { gpx } from "@tmcw/togeojson";
 I didn't add any symbol for the graphic, because in the next step I'll add the elevation profile and this will add a default line symbol to the graphic:
 
 ```js
-// data is parsed and created as a graphic
 
 new ElevationProfile({
   view: view,
