@@ -4,7 +4,7 @@ This is a little app to visualize my hiking trails and display images from my hi
 
 [![screenshot](./screenshot.png)](hike-visualization.netlify.app)
 
-In this small tutorial I'll show you the main steps in building this little app, so that you can also build your own. This is what I'll cover:
+In this tutorial I'll show you the main steps in building this app, so that you can also build your own. This is what I'll cover:
 
 1. display the hiking data on a 3D map and show an elevation profile graphic
 2. display images from the hike on the map
@@ -18,6 +18,7 @@ npm install
 // start development server
 npm run start
 // build production version
+npm run build
 ```
 
 In the end I deployed the app on Netlify and it was such a smooth process that I highly recommend it. Here is a [tutorial](https://www.netlify.com/blog/2016/09/29/a-step-by-step-guide-deploying-on-netlify/) on how to do this.
@@ -25,7 +26,7 @@ In the end I deployed the app on Netlify and it was such a smooth process that I
 ### Display the hiking data and show an elevation profile
 
 For this step we'll use an external library called [togeojson](https://github.com/tmcw/togeojson).
-I have a Fitbit Versa and I can export the tracking data as a .tcx file. This is why in this repository I read the .tcx data, but you can change the code to read .gpx files.
+I have a Fitbit Versa and I can only export the tracking data as a .tcx file. This is why in this repository I read the data as .tcx, but you can change the code to read .gpx files.
 
 ```js
 import { tcx } from "@tmcw/togeojson";
@@ -44,8 +45,10 @@ request("./assets/data/hike_01_01_2020.tcx", {
   const graphic = new Graphic({
     geometry: geometry
   });
-
   graphicsLayer.add(graphic);
+
+  // add ElevationProfile widget
+
 });
 ```
 
@@ -55,11 +58,11 @@ If your tracking data comes in a gpx format, just replace the tcx import with gp
 import { gpx } from "@tmcw/togeojson";
 ```
 
-I didn't add any symbol for the graphic, because in the next step adding the elevation profile will add a default symbology to it:
-
+I didn't add any symbol for the graphic, because in the next step I'll add the elevation profile and this will add a default line symbol to the graphic:
 
 ```js
-...
+// data is parsed and created as a graphic
+
 new ElevationProfile({
   view: view,
   container: "profile",
@@ -78,8 +81,11 @@ new ElevationProfile({
 });
 ```
 
-Small warning at this point: if your hiking trail data has lines with more than one path, this is currently not supported by the elevation profile.
+The [ElevationProfile](https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-ElevationProfile.html) needs a view and a container to be displayed in. The rest of the properties are optional. I am setting the [input graphic](https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-ElevationProfile.html#input) because I want to display it only for the hiking trail graphic. You could leave that property empty and then the user could choose a path in the map using the select button or draw a line using the sketch button. However, we are setting those buttons to be invisible because we don't need them.
 
+Even though the line has z values, it didn't align very well with the ground so I prefered to render it draped on the ground and sample the elevation values from the ground ([Esri's world elevation service](https://www.arcgis.com/home/item.html?id=7029fb60158543ad845c7e1527af11e4) in this case). So, I have a single [profile line](https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-ElevationProfile.html#profiles) and that will be the ground.
+
+Small warning at this point: if your hiking trail data has lines with more than one path, this is currently not supported by the elevation profile.
 
 ### Display images from the hike on the map
 
