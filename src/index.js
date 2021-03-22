@@ -7,7 +7,6 @@ import ElevationProfile from "@arcgis/core/widgets/ElevationProfile";
 import Basemap from "@arcgis/core/Basemap";
 import Polyline from "@arcgis/core/geometry/Polyline";
 import Graphic from "@arcgis/core/Graphic";
-import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import VectorTileLayer from "@arcgis/core/layers/VectorTileLayer";
 import TileLayer from "@arcgis/core/layers/TileLayer";
@@ -15,9 +14,7 @@ import LabelClass from "@arcgis/core/layers/support/LabelClass";
 import { tcx } from "@tmcw/togeojson";
 import "./index.css";
 
-const blue = [17, 121, 207];
 const lightBlue = [129, 175, 214]
-const brown = [158, 114, 82];
 const lightBrown = [161, 136, 119];
 const orange = [245, 173, 66];
 
@@ -104,14 +101,6 @@ const map = new ArcGISWebScene({
   ground: "world-elevation"
 });
 
-const graphicsLayer = new GraphicsLayer({
-  elevationInfo: {
-    mode: "on-the-ground"
-  }
-});
-
-map.add(graphicsLayer);
-
 const view = new SceneView({
   map,
   container: 'viewDiv',
@@ -183,10 +172,10 @@ const popupExpression = `
 
 const picturesLayer = new FeatureLayer({
   url: "https://services2.arcgis.com/cFEFS0EWrhfDeVw9/arcgis/rest/services/Hiking_POI/FeatureServer",
-  elevationInfo: {
-    mode: "relative-to-ground",
-  },
   definitionExpression: "Class = 'picture'",
+  elevationInfo: {
+    mode: "relative-to-ground"
+  },
   popupTemplate: {
     expressionInfos: [{
       name: "image",
@@ -284,22 +273,30 @@ request("./assets/data/hike_01_01_2020.tcx", {
   });
 
   const graphic = new Graphic({
-    geometry: geometry
+    geometry: geometry,
+    symbol: {
+      type: "simple-line",
+      width: 1,
+      color: "#ff7f00",
+      style: "solid",
+      cap: "round",
+      join: "round"
+    }
   });
-
-  graphicsLayer.add(graphic);
 
   /* display an elevation profile for the graphic */
   new ElevationProfile({
     view: view,
     container: "profile",
     input: graphic,
-    profiles: [{
-      type: "ground",
-      color: "orange"
-    }],
+    profiles: [
+      {
+      // displays elevation values from Map.ground
+      type: "ground" //autocasts as new ElevationProfileLineGround()
+    }
+  ],
     visibleElements: {
-      legend: false,
+      legend: true,
       sketchButton: false,
       selectButton: false
     }
